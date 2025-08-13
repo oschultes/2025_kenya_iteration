@@ -2,12 +2,14 @@
 ######################
 # EFGH Phase C Data Core
 # Kenya In-Person Orientation
+# Loops & Iteration Tutorial
 # August 19, 2025
 # Author: Olivia Schultes
 ######################
 
 
 # setup
+if (!require(pacman)) {install.packages("pacman"); require(pacman)}
 pacman::p_load(tidyverse, lubridate, epiR)
 
 
@@ -251,16 +253,6 @@ for(i in definitions_sensitivity) {
 
 
 
-##### Example 3: nested functions
-
-####
-###
-##
-# ask sean for scrambled incidence data
-
-
-
-
 
 #################
 # MAP FROM PURRR PACKAGE
@@ -354,22 +346,6 @@ combined_screening_forms = screening_list |>
 
 
 
-#################
-# PIVOTING INSTEAD OF USING ITERATION
-
-
-scrambled_medication |>
-  pivot_longer(!pid, names_to = c("med", ".value"), names_sep = "_") %>%
-  mutate(dosknown_disc = ifelse(dosknown==1 & !is.na(dosknown) & is.na(dos), 1,
-                                ifelse(dosknown==1 & !is.na(dosknown) & dos==99 & !is.na(dos), 1, 0))) %>%
-  mutate(query = ifelse(dosknown_disc==1, "Medication dose is marked as known but dose amount is blank or marked as 99", NA))
-  
-  
-
-
-
-
-
 
 #################
 # APPLY FAMILY
@@ -405,28 +381,18 @@ scrambled_repeat_sex$sex_match
 
 
 
-##### Example 2: series of univariate regression models
-
-# here we are running a series of univariate regression models on the outcome of 
-# hospitalization after an episode of diarrhea
-
-# first we set up a list of predictor variables and the measures we would like to pull out of the model results
-pred = c("enr_age_months", "sex", "positive_tac_or_culture", "mvs_or_dysentery", "aav")
-param_est = c("coef", "se(coef)", "z", "p", "cilow", "cihigh")
 
 
-# next we use sapply and specify the univariate model within our custom function
-hosp_model_results <- sapply(pred, function(x) {  
-  
-  form <- as.formula(paste0("hosp_after_episode~", x))
-  model <- glm(form, data = scrambled_data, family = "binomial", na.action = na.omit)  
-  hosp_out = data.frame(matrix(vector(), 6, 5, dimnames = list(param_est, pred)))  
-  hosp_out[,x] <- c(summary(model)$coefficients[1,], exp(confint(model))[2,])
-})
+
+#################
+# PIVOTING INSTEAD OF USING ITERATION
 
 
-rownames(hosp_model_results) = param_est
-hosp_model_results = as.data.frame(hosp_model_results)
+scrambled_medication |>
+  pivot_longer(!pid, names_to = c("med", ".value"), names_sep = "_") %>%
+  mutate(dosknown_disc = ifelse(dosknown==1 & !is.na(dosknown) & is.na(dos), 1,
+                                ifelse(dosknown==1 & !is.na(dosknown) & dos==99 & !is.na(dos), 1, 0))) %>%
+  mutate(query = ifelse(dosknown_disc==1, "Medication dose is marked as known but dose amount is blank or marked as 99", NA))
 
 
 
